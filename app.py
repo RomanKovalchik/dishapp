@@ -1,9 +1,8 @@
-#DONE BY Roman Kovalchyk
-#Connection to database is added_ version 2
-#Getting data from the database for /menu endpoint
+# DONE BY Roman Kovalchyk
+# Connection to database is added_ version 2
+# Getting data from the database for /menu endpoint
 from flask import Flask
 import sqlite3
-
 
 app = Flask(__name__)
 
@@ -84,7 +83,8 @@ def user_address():
 def user_addr(id: int):
     return f'<h1>user/address of {id} user endpoint</h1>'
 
-#Connection for database
+
+# Connection for database
 @app.route('/menu', methods=['GET'])
 def menu():
     con = sqlite3.connect("dish.db")
@@ -92,8 +92,6 @@ def menu():
     res = cursor.execute("SELECT * FROM Dishes")
     results = res.fetchall()
     return results
-
-
 
 
 @app.route('/menu/<cat_name>/', methods=['GET'])
@@ -116,16 +114,41 @@ def menu_search():
     return '<h1>menu/search endpoint</h1>'
 
 
-
 if __name__ == '__main__':
     app.run()
 
 
 # endpoints for Admin pannel
 # admin [GET]
+@app.route('/admin', methods=['GET'])
+def admin():
+    return '<h1>admin endpoint</h1>'
+
+
 # admin/dishes [GET, POST]
+
+@app.route('/admin/dishes', methods=['GET', 'POST'])
+def admin_dishes():
+    return '<h1>admin/dishes endpoint</h1>'
+
 # admin/categories [GET, PUT, POST]
+@app.route('/admin/categories', methods=['GET', 'POST', 'PUT'])
+def admin_categs():
+    return '<h1>admin/categories endpoint</h1>'
 # admin/categories/<category_id> [GET, PUT, DELETE, POST]
+@app.route('/admin/categories/<category_id>/', methods=['GET', 'PUT', 'DELETE', 'POST'])
+def admin_cat_id(category_id: int):
+    return f'<h1>admin/categories/{category_id} endpoint</h1>'
+
 # admin/orders [GET]
+@app.route('/admin/orders', methods=['GET'])
+def admin_orders():
+    return '<h1>admin/orders endpoint</h1>'
 # admin/orders/<order_id> [GET, PUT]
+@app.route('/menu/<order_id>/', methods=['GET', 'PUT'])
+def menu_order(order_id: int):
+    return f'<h1>menu/order_id{order_id} endpoint</h1>'
 # admin/search [GET]
+@app.route('/admin/search', methods=['GET'])
+def admin_search():
+    return '<h1>admin/search endpoint</h1>'
