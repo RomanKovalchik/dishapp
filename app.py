@@ -1,13 +1,23 @@
 #DONE BY Roman Kovalchyk
-
+#Connection to database is added_ version 2
+#Getting data from the database for /menu endpoint
 from flask import Flask
+import sqlite3
+
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def start_page():  # put application's code here
-    return '<h1>Welcome to our order food app!</h1>'
+    forms = """<form>
+  <label for="fname">First name:</label><br>
+  <input type="text" id="fname" name="fname" value="John"><br>
+  <label for="lname">Last name:</label><br>
+  <input type="text" id="lname" name="lname" value="Doe"><br><br>
+  <input type="submit" value="Submit">
+</form> """
+    return '<h1>Welcome to our order food app!</h1>' + forms
 
 
 @app.route('/cart', methods=['GET', 'POST'])
@@ -74,10 +84,16 @@ def user_address():
 def user_addr(id: int):
     return f'<h1>user/address of {id} user endpoint</h1>'
 
-
+#Connection for database
 @app.route('/menu', methods=['GET'])
 def menu():
-    return '<h1>menu endpoint</h1>'
+    con = sqlite3.connect("dish.db")
+    cursor = con.cursor()
+    res = cursor.execute("SELECT * FROM Dishes")
+    results = res.fetchall()
+    return results
+
+
 
 
 @app.route('/menu/<cat_name>/', methods=['GET'])
