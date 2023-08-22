@@ -3,27 +3,27 @@
 # Getting data from the database for /menu endpoint
 import json
 
-from flask import Flask
-
+from flask import Flask, request, session, redirect, url_for, render_template
+from flask import request
 from fanctions import SQLiteDB
-
+from fanctions import dict_factory
 app = Flask(__name__)
+app.secret_key = 'f23419!hj'
 
 
 @app.route('/')
 def start_page():  # put application's code here
-
-    return '<h1>Welcome to our order food app!</h1>'
+    if 'user' in session:
+        return f'<h1>Hello, {session["user"]}</h1>'
+    return f'<h1>Welcome to our order food app! Please, login!</h1>'
 
 
 @app.route('/cart', methods=['GET', 'POST'])
 def cart():
-    return '<h1>Cart endpoint</h1>'
+    return render_template('cart.html', user=session["user"])
 
 
-@app.route('/art', methods=['POST'])
-def cart_ord():
-    return '<h1>Hi</h1>'
+
 
 
 @app.route('/cart/order', methods=['GET', 'POST'])
@@ -44,64 +44,43 @@ def user():  # put application's code here
 @app.route('/user/register', methods=['GET', 'POST'])
 def user_reg():
     with SQLiteDB("dish.db") as db:
-        from flask import request
         if request.method == 'POST':
             data = request.form.to_dict()
             db.insert_into('User', data)
         data = db.select_from('User', ['*'])
 
-        html_forms = f""" 
-           <form method='POST'>
-           <input type="text" name="Phone" placeholder="phone"/>
-           <input type="text" name="Email" placeholder="email"/>
-           <input type="text" name="Password" placeholder="password"/>
-           <input type="text" name="Tg" placeholder="telegram"/>
-           <input type="text" name="Type" placeholder="type"/>
-           <input type="submit" value="submit"/>
-           </form>
-           <br/> 
-           {str(data)}
-           """
 
-    return html_forms
+    return render_template('register.html', info=str(data))
 
 
 @app.route('/user/signin', methods=['GET', 'POST'])
 def user_signin():
     with SQLiteDB("dish.db") as db:
-        from flask import request
         message = "Please, enter your e-mail and password!"
         if request.method == 'POST':
-            #data = request.form.to_dict()
             info = request.form.to_dict()
-            email = info.get('Email')
+            username = info.get('Username')
             password = info.get('Password')
 
-            data = db.select_from('User', ['*'], {'Email': email, 'Password': password})
+            data = db.select_from('User', ['*'], {'Username': username, 'Password': password})
             if not data:
                 message = "No users found! Please, check your date or register!"
             else:
-                message = "Welcome to our food delivery service!"
-        html_forms = f""" 
-           <form method='POST'>
-          {str(message)}
-          <br/>
-          <br/>
-           <input type="text" name="Email" placeholder="email"/>
-           <input type="text" name="Password" placeholder="password"/>
-          
-           <input type="submit" value="sign in"/>
-           </form>
-           <br/> 
-           
-           """
+                session['user'] = username
+                return redirect(url_for('start_page'))
 
-    return html_forms
+    return render_template('signin.html', msg=str(message))
 
 
 @app.route('/user/logout', methods=['POST', 'GET'])
 def logout():
-    return '<h1>user/logout endpoint</h1>'
+    if request.method == 'POST':
+        if request.form.get("btn1"):
+            #removing the session
+            session.clear()
+
+
+    return render_template('logout.html')
 
 
 @app.route('/user/restore', methods=['POST', 'GET'])
@@ -133,7 +112,6 @@ def user_addr(id: int):
 @app.route('/menu', methods=['GET', 'POST'])
 def menu():
     with SQLiteDB("dish.db") as db:
-        from flask import request
         if request.method == 'POST':
             data = request.form.to_dict()
             db.insert_into('Dishes', data)
@@ -223,9 +201,7 @@ def admin_search():
     return '<h1>admin/search endpoint</h1>'
 
 
-# print("Hi")
-# db = SQLiteDB("dish.db")
-# print(db.select_from("Dishes", ['Dish_name', "Description"]))
+
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
