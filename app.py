@@ -18,9 +18,21 @@ def start_page():  # put application's code here
     return f'<h1>Welcome to our order food app! Please, login!</h1>'
 
 
+
+
 @app.route('/cart', methods=['GET', 'POST'])
 def cart():
-    return render_template('cart.html', user=session["user"])
+    if 'user' in session:
+        user_id = session.get("user")
+        order_status = 0
+        list_of_orders = []
+        with SQLiteDB("dish.db") as db:
+            orders = db.select_from('Orders', ['*'], {'user':user_id, 'Status':order_status})
+            for i in range(0, len(orders)):
+                order = orders[i]
+                dishes = db.db_row_query(f'select * from ordered_dishes join Dishes on ordered_dishes.Dish_id = Dishes.id where ordered_dishes.ordid = {order["order_id"]}', fetch_all=False)
+                list_of_orders.append(dishes)
+    return render_template('cart.html', user=session["user"], orders=list_of_orders)
 
 
 
@@ -33,7 +45,13 @@ def cart_order():
 
 @app.route('/cart/add', methods=['PUT', 'POST'])
 def cart_add():
-    return '<h1>Cart/add endpoint</h1>'
+    form_data = request.form.get('dish_id')
+    with SQLiteDB("dish.db") as db:
+        #db.update_row('Dishes', {'Status': 0}, {'id': 1})
+        db.update_row('Dishes', {'Status': 0}, {'id': form_data})
+
+
+    return f'<h1>Cart/add endpoint {form_data}</h1>'
 
 
 @app.route('/user', methods=['GET', 'PUT', 'POST', 'DELETE'])
@@ -116,30 +134,24 @@ def menu():
             data = request.form.to_dict()
             db.insert_into('Dishes', data)
         data = db.select_from('Dishes', ['*'])
-        html_forms = f""" 
-        <form method='POST'>
-        <input type="text" name="Dish_name" placeholder="name"/>
-        <input type="text" name="Price" placeholder="price"/>
-        <input type="text" name="Description" placeholder="description"/>
-        <input type="text" name="Available" placeholder="available"/>
-        <input type="text" name="Category" placeholder="category"/>
-        <input type="text" name="Photo" placeholder="photo"/>
-        <input type="text" name="Calory" placeholder="calory"/>
-        <input type="text" name="Protein" placeholder="protein"/>
-        <input type="text" name="Fat" placeholder="fat"/>
-        <input type="text" name="Carbs" placeholder="carbs"/>
-        <input type="submit" value="submit"/>
-        </form>
-        <br/>
-        {str(data)}
-        """
 
-    return html_forms
+    return render_template('menu.html', info=str(data))
 
 
 @app.route('/menu/<cat_name>/', methods=['GET'])
 def cat_name(cat_name: int):
-    return f'<h1>menu/{cat_name} endpoint</h1>'
+    with SQLiteDB("dish.db") as db:
+        #if request.method == 'POST':
+           #data = request.form.to_dict()
+            #db.insert_into('Category', data)
+        data = db.select_from('Dishes', ['*'], {'Category': cat_name})
+        #html_forms = f"""
+
+           #{str(data)}
+          # """
+
+    return render_template('first_course.html', info=data)
+
 
 
 @app.route('/menu/<cat_name>/<dish>', methods=['GET'])

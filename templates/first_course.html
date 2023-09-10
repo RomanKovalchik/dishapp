@@ -1,10 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>First Dishes Page</title>
 </head>
 <body>
-$END$
+
+
+
+{{ info[0].get('id') }}
+
+<form method="post" action="/cart/add">
+
+    <input type="hidden" name="dish_id" value="{{ info[0].get('id') }}">
+    <input type="submit" value="Add to cart">
+</form>
 </body>
 </html>
